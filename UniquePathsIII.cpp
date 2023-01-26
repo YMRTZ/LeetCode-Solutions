@@ -2,119 +2,110 @@
 #include <vector>
 #include <queue>
 
-
-
 int uniquePathsIII(std::vector<std::vector<int>> &grid) {
-    int startX;
-    int startY;
-    int xSize;
-    int ySize;
-    int toVisit;
-    int blocked = 0;
-    std::queue< std::vector< std::pair<int,int> > > q;
-    int paths = 0;
+    int valid = 0;
+    std::pair<int,int> startCoords;
+    std::pair<int,int> endCoords;
+    int blockers = 0;
+    int xSize = grid[0].size();
+    int ySize = grid.size();
+    int target = xSize*ySize;
+    std::vector<std::vector<int>> tempGrid = grid;
 
-    xSize = grid[0].size();
-    ySize = grid.size();
-
-    for(int i = 0; i < xSize; i++) {
-        for(int n = 0; n < ySize; n++) {
-            if(grid[i][n] == 1) {
-                startX = i;
-                startY = n;
+    // i=y j=x
+    for(int i = 0; i < ySize; i++) {
+        for(int j = 0; j < xSize; j++) {
+            if(grid[i][j] == 1) {
+                startCoords.first = j;
+                startCoords.second = i;
             }
-            else if(grid[i][n] == -1) {
-                blocked++;
+            else if(grid[i][j] == 2) {
+                endCoords.first = j;
+                endCoords.second = i;
+            }
+            else if(grid[i][j] == -1) {
+                blockers++;
             }
         }
     }
-    toVisit = xSize*ySize - blocked;
-    
-    std::pair<int,int> temp(startX, startY);
-    std::vector<std::pair<int,int>> tempVec{temp};
-    q.push(tempVec);
-    while(q.size() > 0) {
-        tempVec = q.front();
-        q.pop();
+    target -= blockers;
 
-        // Inc paths if end reached on last step
-        if(tempVec.size() == toVisit && grid[tempVec.back().first][tempVec.back().second] == 2) {
-            paths++;
+    std::queue<std::vector<std::pair<int,int>>> q;
+    std::vector<std::pair<int,int>> path = {startCoords};
+    q.push(path);
+    std::pair<int,int> tempPair;
+    while(q.size() > 0) {
+        path = q.front();
+        q.pop();
+        // Check if done, skip the adding stuff if true
+        if(path.size() == target && path.back() == endCoords) {
+            valid++;
             continue;
         }
-
-        // Block off visited
-        for(int i = 0; i < tempVec.size(); i++) {
-            grid[tempVec[i].first][tempVec[i].second] = -1;
+        // Block off visited nodes
+        for(int i = 0; i < path.size(); i++) {
+            tempPair = path[i];
+            tempGrid[tempPair.second][tempPair.first] = -1;
         }
-        // Up 1
-        if(tempVec.back().first > 0) {
-            // Up 1 left 1
-            if(tempVec.back().second > 0) {
-                temp.first = tempVec.back().first - 1;
-                temp.second = tempVec.back().second - 1;
-                if(grid[temp.first][temp.second] == 0) {
-                    tempVec.push_back(temp);
-                    q.push(tempVec);
-                    tempVec.pop_back();
-                }
-                else if(grid[temp.first][temp.second] == 2 && tempVec.size() == toVisit-1) {
-                    std::cout << "uwu" << std::endl;
-                }
-            }
-            // Up 1 right 1
-            if(tempVec.back().second < ySize-1) {
-                temp.first = tempVec.back().first - 1;
-                temp.second = tempVec.back().second + 1;
-                if(grid[temp.first][temp.second] == 0) {
-                    tempVec.push_back(temp);
-                    q.push(tempVec);
-                    tempVec.pop_back();
-                }
-                else if(grid[temp.first][temp.second] == 2 && tempVec.size() == toVisit-1) {
-                    std::cout << "uwu" << std::endl;
-                }
+        // Add 4 directions to queue if valid
+        std::pair<int,int> tempPair2 = path.back();
+        // 1 left
+        tempPair = tempPair2;
+        if(tempPair.first > 0) {
+            if(tempGrid[tempPair.second][tempPair.first-1] != -1) {
+                // Update last move, push to path, push path to queue, reset path to check for others
+                tempPair.first -= 1;
+                path.push_back(tempPair);
+                q.push(path);
+                path.pop_back();
             }
         }
-        // Down 1
-        if (tempVec.back().first < xSize-1) {
-            // Down 1 left 1
-            if(tempVec.back().second > 0) {
-                temp.first = tempVec.back().first + 1;
-                temp.second = tempVec.back().second - 1;
-                if(grid[temp.first][temp.second] == 0) {
-                    tempVec.push_back(temp);
-                    q.push(tempVec);
-                    tempVec.pop_back();
-                }
-                else if(grid[temp.first][temp.second] == 2 && tempVec.size() == toVisit-1) {
-                    std::cout << "uwu" << std::endl;
-                }
+        // 1 right
+        tempPair = tempPair2;
+        if(tempPair.first < xSize-1) {
+            if(tempGrid[tempPair.second][tempPair.first+1] != -1) {
+                // Update last move, push to path, push path to queue, reset path to check for others
+                tempPair.first += 1;
+                path.push_back(tempPair);
+                q.push(path);
+                path.pop_back();
             }
-            // Down 1 right 1
-            if(tempVec.back().second < ySize-1) {
-                temp.first = tempVec.back().first + 1;
-                temp.second = tempVec.back().second + 1;
-                if(grid[temp.first][temp.second] == 0) {
-                    tempVec.push_back(temp);
-                    q.push(tempVec);
-                    tempVec.pop_back();
-                }
-                else if(grid[temp.first][temp.second] == 2 && tempVec.size() == toVisit-1) {
-                    std::cout << "uwu" << std::endl;
-                }
+        }
+        // 1 down
+        tempPair = tempPair2;
+        if(tempPair.second > 0) {
+            if(tempGrid[tempPair.second-1][tempPair.first] != -1) {
+                // Update last move, push to path, push path to queue, reset path to check for others
+                tempPair.second -= 1;
+                path.push_back(tempPair);
+                q.push(path);
+                path.pop_back();
+            }
+        }
+        // 1 up
+        tempPair = tempPair2;
+        if(tempPair.second < ySize-1) {
+            if(tempGrid[tempPair.second+1][tempPair.first] != -1) {
+                // Update last move, push to path, push path to queue, reset path to check for others
+                tempPair.second += 1;
+                path.push_back(tempPair);
+                q.push(path);
+                path.pop_back();
             }
         }
 
-        // Unblock visited
-        for(int i = 0; i < tempVec.size(); i++) {
-            grid[tempVec[i].first][tempVec[i].second] = 0;
-        }
+        // Reset tempGrid
+        tempGrid = grid;
     }
-    return paths;
+    return valid;
+
 }
 
-int main() {
 
+
+int main() {
+    std::vector<std::vector<int>> grid = {{1,0,0,0},{0,0,0,0},{0,0,2,-1}};
+    int ret = uniquePathsIII(grid);
+    std::cout << ret << std::endl;
     return 0;
 }
