@@ -1,5 +1,5 @@
-#include <iostream>
-#include <stack>
+#include<iostream>
+#include<stack>
 
 struct TreeNode {
   int val;
@@ -10,54 +10,46 @@ struct TreeNode {
   TreeNode(int x, TreeNode *left, TreeNode *right) : val(x), left(left), right(right) {}
 };
 
-TreeNode* pruneTree() {
-  TreeNode* root;
-
-
-  std::stack<TreeNode*> dfStack;
-  std::stack<std::pair<TreeNode*,int>*> dbStack;
-
-  dfStack.push(root);
-  TreeNode* currNode;
-  while(!dfStack.empty()) {
-    // Push right side first, so left processes first
-    currNode = dfStack.top();
-    dfStack.pop();
-
-
-    if(currNode->val != 1) {
-      if(currNode->left != nullptr && currNode->right != nullptr) {
-        dbStack.push(new std::pair<TreeNode*,int> {currNode,0});
-      }
-      else if(currNode == nullptr && currNode->right == nullptr) {
-        if(dbStack.top()->second == 0) {
-          delete dbStack.top()->first->left;
-          dbStack.top()->first->left = nullptr;
-        }
-        else {
-          delete dbStack.top()->first->right;
-          dbStack.top()->first->right = nullptr;
-        }
-        dbStack.top()->second++;
-      }
-
-      if(currNode->right != nullptr) {
-        dfStack.push(currNode->right);
-      }
-      if(currNode->left != nullptr) {
-        dfStack.push(currNode->left);
-      }
-
-    }
-
-    if(dbStack.top()->second == 2) {
-      dbStack.pop();
-    }
+TreeNode* pruneTree(TreeNode* root) {
+  // std::stack<TreeNode*> dfStack;
+  int total = dfs(root);
+  if(total == 0) {
+    return;
   }
-
   return root;
 }
 
+// Left int: total node value
+// Right int: 0 - left, 1 - right, 2 - root
+int dfs(TreeNode* currNode) {
+  int val = currNode->val;
+  int temp;
+  if(currNode->left != nullptr) {
+    temp = dfs(currNode->left);
+    if(temp == 0) {
+      currNode->left = nullptr;
+    }
+    else {
+      val += temp;
+    }
+  }
+  if(currNode->right != nullptr) {
+    temp = dfs(currNode->right);
+    if(temp == 0) {
+      currNode->right = nullptr;
+    }
+    else {
+      val += temp;
+    }
+  }
+
+
+
+  return val;
+}
+
+
 int main() {
+
   return 0;
 }
